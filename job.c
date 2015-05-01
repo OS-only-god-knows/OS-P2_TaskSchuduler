@@ -171,7 +171,12 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
+/* 调试任务2 */
+#ifdef DEBUG
+printf("SIGVTSLRM receives!\n");
+#endif
 	return;
+
 case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	ret = waitpid(-1,&status,WNOHANG);
 	if (ret == 0)
@@ -373,7 +378,7 @@ int main()
 	struct stat statbuf;
 	struct sigaction newact,oldact1,oldact2;
 
-//调试任务一 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+/* 调试任务一 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
 printf("debug is open!\n");
 #endif
@@ -386,7 +391,7 @@ printf("debug is open!\n");
 
 	if(mkfifo("/tmp/server",0666)<0)
 		error_sys("mkfifo failed");
-	/* 在非阻塞模式下打开FIFO */
+	/* 在非阻塞模式下打开FIFO,返回文件描述符 */
 	if((fifo=open("/tmp/server",O_RDONLY|O_NONBLOCK))<0)
 		error_sys("open fifo failed");
 
