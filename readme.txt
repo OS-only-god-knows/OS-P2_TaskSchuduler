@@ -44,4 +44,28 @@
 	do_stat(cmd);
 	#endif
 	对DEQ，STAT命令的处理代码和ENQ类似，这里不再写出。
-5.调试任务8:
+5.调试任务8:实现“显示jobselect函数选择的进程的信息”。
+	在job.c的jobselect()函数中增加的代码如下：
+	#ifdef DEBUG
+	char timebuf[BUFLEN];
+	#endif
+
+	#ifdef DEBUG
+	if(select==NULL)
+	{
+		printf("the select job is null!\n");
+	}
+	else
+	{
+		printf("the select job:\n");
+		strcpy(timebuf,ctime(&(select->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("jobid:%d\npid:%d\nowner:%d\nruntime:%d\nwaittime:%d\ncreattime:%s\nstate:%s\n",
+			select->job->jid,
+			select->job->pid,
+			select->job->ownerid,
+			select->job->run_time,
+			select->job->wait_time,
+			timebuf,"Ready");	
+	}
+	#endif
