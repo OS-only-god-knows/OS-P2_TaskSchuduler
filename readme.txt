@@ -69,3 +69,15 @@
 			timebuf,"Ready");	
 	}
 	#endif
+6.调试任务9:实现“显示jobswitch执行前后的正在执行的进程和等待队列中的分别的情况”。
+	在job.c的scheduler()函数中增加的代码如下：
+	#ifdef DEBUG
+	printf("before jobselect:\n");
+	do_stat(cmd);
+	#endif
+
+	#ifdef DEBUG
+	printf("after jobselect:\n");
+	do_stat(cmd);
+	#endif
+

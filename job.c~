@@ -152,6 +152,7 @@ struct waitqueue* jobselect()
 #ifdef DEBUG
 char timebuf[BUFLEN];
 #endif
+
 	select = NULL;
 	selectprev = NULL;
 	if(head){

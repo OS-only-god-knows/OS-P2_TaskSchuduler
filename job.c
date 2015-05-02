@@ -53,7 +53,6 @@ printf("update jobs in wait queue!\n");
 printf("before do_enq:\n");
 do_stat(cmd);
 #endif
-
 #ifdef DEBUG
 printf("Execute enq!\n");
 #endif
@@ -101,12 +100,23 @@ do_stat(cmd);
 printf("select which job to run next!\n");
 #endif
 	next=jobselect();
+
 	/* 作业切换 */
 /*调试任务3@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
 printf("switch to the next jobs\n");
 #endif
+
+/* 调试任务9@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("before jobswitch:\n");
+do_stat(cmd);
+#endif
 	jobswitch();
+#ifdef DEBUG
+printf("after jobswitch:\n");
+do_stat(cmd);
+#endif
 }
 
 int allocjid()
