@@ -10,7 +10,7 @@
 #include <time.h>
 #include "job.h"
 
-#define DEBUG
+// #define DEBUG
 
 int jobid=0;
 int siginfo=1;
@@ -59,13 +59,18 @@ printf("update jobs in wait queue!\n");
 	default:
 		break;
 	}
-/* 调试任务4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
+	/* 选择高优先级作业 */
+/* 调试任务3@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
 printf("select which job to run next!\n");
 #endif
-	/* 选择高优先级作业 */
 	next=jobselect();
 	/* 作业切换 */
+/*调试任务3@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("switch to the next jobs\n");
+#endif
 	jobswitch();
 }
 
