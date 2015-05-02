@@ -34,9 +34,9 @@ int main(int argc,char *argv[])
 	statcmd.argnum=0;
 /* 调试任务5@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
-printf("statcmd cmdtype\t%d\n"
-	"statcmd owner\t%d\n",
-	statcmd.type,statcmd.owner);
+printf("deqcmd cmdtype\t%d\n"
+	"deqcmd owner\t%d\n",
+	deqcmd.type,deqcmd.owner);
 #endif
 	/* 打开fifo文件 */
 	if((fd=open("/tmp/server",O_WRONLY))<0)
