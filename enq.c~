@@ -66,7 +66,6 @@ int main(int argc,char *argv[])
 		argv++;
 	}
 
-/* ต๗สิศฮฮ๑4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
     #ifdef DEBUG
 		printf("enqcmd cmdtype\t%d	(-1 means ENQ,-2 means DEQ,-3 means STAT)\n"
 			"enqcmd owner\t%d\n"
