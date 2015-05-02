@@ -11,6 +11,8 @@
 #include "job.h"
 
 #define DEBUG
+void jobstate(struct jobinfo *job,char *str);
+
 
 int jobid=0;
 int siginfo=1;
@@ -436,6 +438,10 @@ void do_stat(struct jobcmd statcmd)
 {
 	struct waitqueue *p;
 	char timebuf[BUFLEN];
+/* 修改do_stat函数@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+char str[10];
+
+
 	/*
 	*打印所有作业的统计信息:
 	*1.作业ID
@@ -450,6 +456,7 @@ void do_stat(struct jobcmd statcmd)
 	/* 打印信息头部 */
 	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\t\tSTATE\n");
 	if(current){
+jobstate(current->job,str);
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf)-1]='\0';
 		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
@@ -458,10 +465,11 @@ void do_stat(struct jobcmd statcmd)
 			current->job->ownerid,
 			current->job->run_time,
 			current->job->wait_time,
-			timebuf,"RUNNING");
+			timebuf,str);
 	}
 
 	for(p=head;p!=NULL;p=p->next){
+jobstate(p->job,str);
 		strcpy(timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf)-1]='\0';
 		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
@@ -471,7 +479,7 @@ void do_stat(struct jobcmd statcmd)
 			p->job->run_time,
 			p->job->wait_time,
 			timebuf,
-			"READY");
+			str);
 	}
 }
 
@@ -520,3 +528,30 @@ printf("debug is open!\n");
 	close(globalfd);
 	return 0;
 }
+
+
+
+/* 添加jobstate函数@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+void jobstate(struct jobinfo *job,char *str)
+{
+	if(job->state==RUNNING)
+	{
+		strcpy(str,"RUNNING");
+		str[7]='\0';
+	}	
+	else if(job->state==READY)
+	{
+		strcpy(str,"READY");
+		str[5]='\0';
+	}
+	else if(job->state==DONE)
+	{
+		strcpy(str,"DONE");
+		str[4]='\0';
+	}
+	else 
+	{
+		str[0]='\0';
+	}
+}
+

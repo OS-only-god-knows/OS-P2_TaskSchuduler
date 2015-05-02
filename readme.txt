@@ -82,7 +82,7 @@
 	do_stat(cmd);
 	#endif
 7.调试任务10:实现“显示当进程自己运行完成后发送SIGCHLD给sig_handler后的正在执行的进程和等待队列中的状态”。
-	修改Demo.c，使其循环20次后结束。
+	修改Demo.c，使其循环10次后结束。
 	在sig_handler()函数中增加代码如下：
 	#ifdef DEBUG
 	struct jobcmd cmd;
@@ -93,6 +93,9 @@
 	#endif
 	备注：这个实现其实是有问题的，子进程执行完毕，父进程并没有立即在sig_handler函数中消除这个子进程~
 	待完善~
+8.添加jobstate函数：用来生成job的状态
+  修改do_stat函数。
+
 
 
 

@@ -8,7 +8,7 @@ void main()
   int k=0;
   struct tm *timeinfo;
   time(&timer);//系统开始的时间
-  while(k<=20)
+  while(k<10)
   {
      time(&timerc);
      if((timerc-timer)>=1)//每过1秒打印
