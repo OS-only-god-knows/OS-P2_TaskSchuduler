@@ -262,6 +262,10 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 {
 	int status;
 	int ret;
+/* 调试任务10 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+struct jobcmd cmd;
+#endif
 
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
@@ -280,6 +284,10 @@ case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	if(WIFEXITED(status)){
 		current->job->state = DONE;
 		printf("normal termation, exit status = %d\n",WEXITSTATUS(status));
+/* 调试任务10 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+do_stat(cmd);
+#endif
 	}else if (WIFSIGNALED(status)){
 		printf("abnormal termation, signal number = %d\n",WTERMSIG(status));
 	}else if (WIFSTOPPED(status)){
