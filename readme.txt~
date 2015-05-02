@@ -18,3 +18,30 @@
 		"statcmd owner\t%d\n",
 		statcmd.type,statcmd.owner);
 	#endif
+3.调试任务6:实现“查看updateall函数执行前后队列里所有进程的相关信息”。
+	思路：可以借助已有的do_stat()函数帮助实现，减少代码量
+	在job.c的updateall()函数中增加代码如下：
+	#ifdef DEBUG
+	struct jobcmd cmd;
+	printf("before updateAll:\n");
+	do_stat(cmd);
+	#endif
+
+	#ifdef DEBUG
+	printf("after updateAll:\n");
+	do_stat(cmd);
+	#endif
+4.调试任务7:实现“显示ENQ，DEQ，STAT命令执行前后的队列里所有进程的相关信息”。
+	思路：实现方法与任务6类似，可以在scheduler()函数里面完成。
+	在job.c的scheduler()函数中增加的代码如下：
+#ifdef DEBUG
+printf("before do_enq:\n");
+do_stat(cmd);
+#endif
+
+#ifdef DEBUG
+printf("after do_enq:\n");
+do_stat(cmd);
+#endif
+对DEQ，STAT命令的处理代码和ENQ类似，这里不再写出。
+5.调试任务8:

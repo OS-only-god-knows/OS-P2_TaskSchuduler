@@ -48,13 +48,38 @@ printf("update jobs in wait queue!\n");
 	/* 对从FIFO中读取的cmd进行处理@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 	switch(cmd.type){
 	case ENQ:
+/* 调试任务7@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("before do_enq:\n");
+do_stat(cmd);
+#endif
 		do_enq(newjob,cmd);
+#ifdef DEBUG
+printf("after do_enq:\n");
+do_stat(cmd);
+#endif
 		break;
 	case DEQ:
+#ifdef DEBUG
+printf("before do_deq:\n");
+do_stat(cmd);
+#endif
 		do_deq(cmd);
+#ifdef DEBUG
+printf("after do_deq:\n");
+do_stat(cmd);
+#endif
 		break;
 	case STAT:
+#ifdef DEBUG
+printf("before do_stat:\n");
+do_stat(cmd);
+#endif
 		do_stat(cmd);
+#ifdef DEBUG
+printf("after do_stat:\n");
+do_stat(cmd);
+#endif
 		break;
 	default:
 		break;
