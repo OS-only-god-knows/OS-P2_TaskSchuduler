@@ -10,7 +10,7 @@
 #include <time.h>
 #include "job.h"
 
-// #define DEBUG
+#define DEBUG
 
 int jobid=0;
 int siginfo=1;
@@ -82,6 +82,12 @@ int allocjid()
 void updateall()
 {
 	struct waitqueue *p;
+/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+struct jobcmd cmd;
+printf("before updateAll:\n");
+do_stat(cmd);
+#endif
 
 	/* 更新作业运行时间 */
 	if(current)  /* current是当前正在运行的进程@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
@@ -96,6 +102,11 @@ void updateall()
 			p->job->wait_time = 0;
 		}
 	}
+/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("after updateAll:\n");
+do_stat(cmd);
+#endif
 }
 
 struct waitqueue* jobselect()

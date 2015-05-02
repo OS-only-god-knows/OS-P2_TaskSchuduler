@@ -18,3 +18,17 @@
 		"statcmd owner\t%d\n",
 		statcmd.type,statcmd.owner);
 	#endif
+3.调试任务6:实现“查看updateall函数执行前后队列里所有进程的相关信息”。
+	思路：可以借助已有的do_stat()函数帮助实现，减少代码量
+	在job.c的updateall()函数中增加代码如下：
+	#ifdef DEBUG
+	struct jobcmd cmd;
+	printf("before updateAll:\n");
+	do_stat(cmd);
+	#endif
+
+	#ifdef DEBUG
+	printf("after updateAll:\n");
+	do_stat(cmd);
+	#endif
+
