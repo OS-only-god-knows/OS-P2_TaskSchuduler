@@ -39,8 +39,13 @@ void scheduler()
 #endif
 
 	/* 更新等待队列中的作业 */
+/* 调试任务3@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("update jobs in wait queue!\n");
+#endif
 	updateall();
 
+	/* 对从FIFO中读取的cmd进行处理@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 	switch(cmd.type){
 	case ENQ:
 		do_enq(newjob,cmd);
@@ -54,7 +59,10 @@ void scheduler()
 	default:
 		break;
 	}
-
+/* 调试任务4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("select which job to run next!\n");
+#endif
 	/* 选择高优先级作业 */
 	next=jobselect();
 	/* 作业切换 */
@@ -71,12 +79,13 @@ void updateall()
 	struct waitqueue *p;
 
 	/* 更新作业运行时间 */
-	if(current)
+	if(current)  /* current是当前正在运行的进程@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 		current->job->run_time += 1; /* 加1代表1000ms */
 
 	/* 更新作业等待时间及优先级 */
 	for(p = head; p != NULL; p = p->next){
 		p->job->wait_time += 1000;
+		 /* 根据运行时间修改等待进程的优先级@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 		if(p->job->wait_time >= 5000 && p->job->curpri < 3){
 			p->job->curpri++;
 			p->job->wait_time = 0;
@@ -171,11 +180,13 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
-/* 调试任务2 */
+
+/* 调试任务2 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
 printf("SIGVTSLRM receives!\n");
 #endif
 	return;
+
 case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	ret = waitpid(-1,&status,WNOHANG);
 	if (ret == 0)
