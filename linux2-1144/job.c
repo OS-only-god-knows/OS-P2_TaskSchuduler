@@ -137,7 +137,9 @@ struct waitqueue* jobselect()
 {
 	struct waitqueue *p,*prev,*select,*selectprev;
 	int highest = -1;
-
+	#ifdef DEBUG
+	char timebuf[BUFLEN];
+	#endif
 	select = NULL;
 	selectprev = NULL;
 	if(head){
@@ -152,6 +154,28 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
+	#ifdef DEBUG
+	if(select==NULL)
+	{
+		printf("Job is null!\n");
+	}
+	else
+	{
+		printf("Job:\n");
+		strcpy(timebuf,ctime(&(select->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("jobid:%d\npid:%d\ndefpri:%d\ncurpri:%d\nownerid:%d\nwaittime:%d\nruntime:%d\ncreattime:%s\nstate:%s\n",
+			select->job->jid,
+			select->job->pid,
+			select->job->defpri,
+			select->job->cuipri,
+			select->job->ownerid,
+			select->job->wait_time,
+			select->job->run_time,
+			timebuf,
+			"Ready");	
+	}
+	#endif
 	return select;
 }
 

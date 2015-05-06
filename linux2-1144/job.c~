@@ -47,7 +47,7 @@ void scheduler()
 	switch(cmd.type){
 	case ENQ:
 		#ifdef DEBUG
-		printf("Before enq:\n");
+		printf("Before enq cmd:\n");
 		do_stat(cmd);
 		#endif
                 #ifdef DEBUG
@@ -55,13 +55,13 @@ void scheduler()
                 #endif
 		do_enq(newjob,cmd);
 		#ifdef DEBUG
-		printf("After enq:\n");
+		printf("After enq cmd:\n");
 		do_stat(cmd);
 		#endif
 		break;
 	case DEQ:
 		#ifdef DEBUG
-		printf("Before deq:\n");
+		printf("Before deq cmd:\n");
 		do_stat(cmd);
 		#endif
                 #ifdef DEBUG
@@ -69,18 +69,22 @@ void scheduler()
                 #endif
 		do_deq(cmd);
 		#ifdef DEBUG
-		printf("After deq:\n");
+		printf("After deq cmd:\n");
 		do_stat(cmd);
 		#endif
 		break;
 	case STAT:
 		#ifdef DEBUG
-		printf("Before stat:\n");
+		printf("Before stat cmd:\n");
 		do_stat(cmd);
 		#endif
                 #ifdef DEBUG
                    printf("Execute stat!\n");
                 #endif
+		#ifdef DEBUG
+		printf("After stat cmd:\n");
+		do_stat(cmd);
+		#endif
 		do_stat(cmd);
 		break;
 	default:
@@ -133,7 +137,9 @@ struct waitqueue* jobselect()
 {
 	struct waitqueue *p,*prev,*select,*selectprev;
 	int highest = -1;
-
+	#ifdef DEBUG
+	char timebuf[BUFLEN];
+	#endif
 	select = NULL;
 	selectprev = NULL;
 	if(head){
@@ -148,6 +154,27 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
+	#ifdef DEBUG
+	if(select==NULL)
+	{
+		printf("Job is null!\n");
+	}
+	else
+	{
+		printf("Job:\n");
+		strcpy(timebuf,ctime(&(select->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("jobid:%d\npid:%d\ndefpri:%d\ncurpri:%d\nownerid:%d\nwaittime:%d\nruntime:%d\ncreattime:%s\nstate:%s\n",
+			select->job->jid,
+			select->job->pid,
+			select->job->defpri,
+			select->job->cuipri,
+			select->job->ownerid,
+			select->job->wait_time,
+			select->job->run_time,
+			timebuf,"Ready");	
+	}
+	#endif
 	return select;
 }
 
