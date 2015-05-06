@@ -46,21 +46,45 @@ void scheduler()
         
 	switch(cmd.type){
 	case ENQ:
+		#ifdef DEBUG
+		printf("Before enq cmd:\n");
+		do_stat(cmd);
+		#endif
                 #ifdef DEBUG
                    printf("Execute enq!\n");
                 #endif
 		do_enq(newjob,cmd);
+		#ifdef DEBUG
+		printf("After enq cmd:\n");
+		do_stat(cmd);
+		#endif
 		break;
 	case DEQ:
+		#ifdef DEBUG
+		printf("Before deq cmd:\n");
+		do_stat(cmd);
+		#endif
                 #ifdef DEBUG
                    printf("Execute deq!\n");
                 #endif
 		do_deq(cmd);
+		#ifdef DEBUG
+		printf("After deq cmd:\n");
+		do_stat(cmd);
+		#endif
 		break;
 	case STAT:
+		#ifdef DEBUG
+		printf("Before stat cmd:\n");
+		do_stat(cmd);
+		#endif
                 #ifdef DEBUG
                    printf("Execute stat!\n");
                 #endif
+		#ifdef DEBUG
+		printf("After stat cmd:\n");
+		do_stat(cmd);
+		#endif
 		do_stat(cmd);
 		break;
 	default:
