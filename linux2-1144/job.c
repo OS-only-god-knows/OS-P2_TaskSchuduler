@@ -99,7 +99,15 @@ void scheduler()
         #ifdef DEBUG
            printf("Switch to the next job!\n");
         #endif
+	#ifdef DEBUG
+	printf("Before jobswitch:\n");
+	do_stat(cmd);
+	#endif
 	jobswitch();
+	#ifdef DEBUG
+	printf("After jobswitch:\n");
+	do_stat(cmd);
+	#endif
 }
 
 int allocjid()
