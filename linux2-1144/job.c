@@ -86,7 +86,11 @@ int allocjid()
 void updateall()
 {
 	struct waitqueue *p;
-
+	#ifdef DEBUG
+	struct jobcmd cmd;
+	printf("before updateAll:\n");
+	do_stat(cmd);
+	#endif
 	/* 更新作业运行时间 */
 	if(current)
 		current->job->run_time += 1; /* 加1代表1000ms */
@@ -99,6 +103,10 @@ void updateall()
 			p->job->wait_time = 0;
 		}
 	}
+	#ifdef DEBUG
+	printf("after updateAll:\n");
+	do_stat(cmd);
+	#endif
 }
 
 struct waitqueue* jobselect()
