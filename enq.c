@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include "job.h"
 
-#define DEBUG
+// #define DEBUG
 /* 
  * √¸¡Ó”Ô∑®∏Ò Ω
  *     enq [-p num] e_file args
@@ -21,7 +21,7 @@ void usage()
 
 int main(int argc,char *argv[])
 {
-	int p=0;
+	int p=1;
 	int fd;
 	char c,*offset;
 	struct jobcmd enqcmd;
@@ -46,9 +46,9 @@ int main(int argc,char *argv[])
 		}
 	}
 
-	if(p<0||p>3)
+	if(p<1 || p>3)
 	{
-		printf("invalid priority:must between 0 and 3\n");
+		printf("invalid priority:must between 1 and 3\n");
 		return 1;
 	}
 
