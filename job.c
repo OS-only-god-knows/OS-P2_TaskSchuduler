@@ -10,7 +10,7 @@
 #include <time.h>
 #include "job.h"
 
- #define DEBUG
+// #define DEBUG
 void jobstate(struct jobinfo *job,char *str);
 
 
@@ -475,7 +475,6 @@ queueEnd(newnode);
 	}
 }
 
-
 void do_deq(struct jobcmd deqcmd)
 {
 	int deqid,i;
@@ -498,53 +497,86 @@ void do_deq(struct jobcmd deqcmd)
 		free(current->job);
 		free(current);
 		current=NULL;
-printf("1111111111111111111111\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
 	}
 
 	else{ /* 或者在等待队列中查找deqid */
 		select=NULL;
 		selectprev=NULL;
-printf("22222222222222222222\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
-for(i=0;i<3;i++){
-if(i==0)rhead=head3;
-else if(i==1)rhead=head2;
-else rhead=head1;
-printf("333333333333333333333\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
-		if(rhead){
-			for(prev=rhead,p=rhead;p!=NULL;prev=p,p=p->next)
+// 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		if(head1){
+			for(prev=head1,p=head1;p!=NULL;prev=p,p=p->next){
 				if(p->job->jid==deqid){
 					select=p;
 					selectprev=prev;
 					break;
 				}
-printf("4444444444444444444444444\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########		
-				selectprev->next=select->next;
-				if(select==selectprev)
-					rhead=rhead->next; // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-printf("5555555555555555555555555\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
-if(i==0)head3=rhead;
-else if(i==1)head2=rhead;
-else head1=rhead;
+			}	
 		}
-printf("666666666666666666666666\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
+		// 如果找到select的话 
 		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head1=head1->next;
 			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
 				free((select->job->cmdarg)[i]);
 				(select->job->cmdarg)[i]=NULL;
 			}
-printf("77777777777777777777777777\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
 			free(select->job->cmdarg);
 			free(select->job);
 			free(select);
 			select=NULL;
+			return ;
+		}
+		if(head2){
+			for(prev=head2,p=head2;p!=NULL;prev=p,p=p->next){
+				if(p->job->jid==deqid){
+					select=p;
+					selectprev=prev;
+					break;
+				}
+			}	
+		}
+		// 如果找到select的话 
+		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head2=head2->next;
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+				free((select->job->cmdarg)[i]);
+				(select->job->cmdarg)[i]=NULL;
 			}
-	if(p!=NULL && p->job->jid==deqid) break;
-printf("88888888888888888888888888\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
+			free(select->job->cmdarg);
+			free(select->job);
+			free(select);
+			select=NULL;
+			return ;
+		}
+		if(head3){
+			for(prev=head3,p=head3;p!=NULL;prev=p,p=p->next){
+				if(p->job->jid==deqid){
+					select=p;
+					selectprev=prev;
+					break;
+				}
+			}	
+		}
+		// 如果找到select的话 
+		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head3=head3->next;
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+				free((select->job->cmdarg)[i]);
+				(select->job->cmdarg)[i]=NULL;
+			}
+			free(select->job->cmdarg);
+			free(select->job);
+			free(select);
+			select=NULL;
+			return ;
 		}
 	}
-printf("9999999999999999999999999\n");  // @@@@@@@@@@@@@@@@@@@@@@########@@@@@@@@@@@@@@@@##########
 }
-
 
 void do_stat(struct jobcmd statcmd)
 {

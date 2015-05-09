@@ -10,7 +10,7 @@
 #include <time.h>
 #include "job.h"
 
-#define DEBUG
+// #define DEBUG
 void jobstate(struct jobinfo *job,char *str);
 
 
@@ -19,8 +19,12 @@ int siginfo=1;
 int fifo;
 int globalfd;
 
-struct waitqueue *head=NULL;
-struct waitqueue *next=NULL,*current =NULL;
+struct waitqueue *head1=NULL, *head2=NULL, *head3=NULL; // 修改点@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+struct waitqueue *next=NULL, *current =NULL;
+void queueEnd(struct waitqueue *newnode); // 修改点@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void queueHead(struct waitqueue *newnode);
+int checkRunTime(struct waitqueue* p);
+void jobstate(struct jobinfo *job,char *str);
 
 /* 调度程序 */
 void scheduler()
@@ -45,8 +49,18 @@ void scheduler()
 #ifdef DEBUG
 printf("update jobs in wait queue!\n");
 #endif
-	updateall();
 
+/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("before updateAll:\n");
+do_stat(cmd);
+#endif
+	updateall();
+/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+#ifdef DEBUG
+printf("after updateAll:\n");
+do_stat(cmd);
+#endif
 	/* 对从FIFO中读取的cmd进行处理@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 	switch(cmd.type){
 	case ENQ:
@@ -126,58 +140,109 @@ int allocjid()
 	return ++jobid;
 }
 
+
+// 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void updateall()
 {
-	struct waitqueue *p;
-/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-#ifdef DEBUG
-struct jobcmd cmd;
-printf("before updateAll:\n");
-do_stat(cmd);
-#endif
-
+	struct waitqueue *p, *tmp;
+// printf("111111111111111111111111\n");////@##################################@@@@#####
 	/* 更新作业运行时间 */
-	if(current)  /* current是当前正在运行的进程@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+	if (current){
 		current->job->run_time += 1; /* 加1代表1000ms */
-
+		current->job->constant_time += 1;
+	}
+// printf("2222222222222222222222222\n");////@##################################@@@@#####
 	/* 更新作业等待时间及优先级 */
-	for(p = head; p != NULL; p = p->next){
+	for (p = head1; p != NULL; p = p->next)
 		p->job->wait_time += 1000;
-		 /* 根据运行时间修改等待进程的优先级@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-		if(p->job->wait_time >= 5000 && p->job->curpri < 3){
-			p->job->curpri++;
-			p->job->wait_time = 0;
+	for (p = head2; p != NULL; p = p->next)
+		p->job->wait_time += 1000;
+	for (p = head3; p != NULL; p = p->next)
+		p->job->wait_time += 1000;
+// printf("33333333333333333333333333\n");////@##################################@@@@#####
+	while (head1!=NULL && head1->job->wait_time >= 10000 && head1->job->curpri < 3){
+		tmp = head1;
+		head1 = head1->next;
+		tmp->next = NULL;
+		tmp->job->curpri++;
+		tmp->job->wait_time = 0;
+		queueEnd(tmp);
+	}
+// printf("4444444444444444444444444444\n");////@##################################@@@@#####
+	if (head1 != NULL){
+		tmp = head1;
+		p = head1->next;
+		while (p != NULL){
+			if (p->job->wait_time >= 10000 && p->job->curpri < 3){
+				p->job->curpri++;
+				p->job->wait_time = 0;
+				tmp->next = p->next;
+				p->next = NULL;
+				queueEnd(p);
+				p = tmp;
+			}
+			tmp = p;
+			p = p->next;
 		}
 	}
-/* 调试任务6@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-#ifdef DEBUG
-printf("after updateAll:\n");
-do_stat(cmd);
-#endif
+// printf("5555555555555555555555555555\n");////@##################################@@@@#####
+	while (head2!=NULL && head2->job->wait_time >= 10000 && head2->job->curpri < 3){
+		tmp = head2;
+		head2 = head2->next;
+		tmp->next = NULL;
+		tmp->job->curpri++;
+		tmp->job->wait_time = 0;
+		queueEnd(tmp);
+	}
+// printf("66666666666666666666666666666\n");////@##################################@@@@#####
+	if (head2 != NULL){
+		tmp = head2;
+		p = head2->next;
+		while (p != NULL){
+			if (p->job->wait_time >= 10000 && p->job->curpri < 3){
+				p->job->curpri++;
+				p->job->wait_time = 0;
+				tmp->next = p->next;
+				p->next = NULL;
+				queueEnd(p);
+				p = tmp;
+			}
+			tmp = p;
+			p = p->next;
+		}
+	}
+// printf("99999999999999999999999999999999\n");////@##################################@@@@#####
 }
 
 struct waitqueue* jobselect()
 {
-	struct waitqueue *p,*prev,*select,*selectprev;
-	int highest = -1;
+	struct waitqueue *select;
 /* 调试任务8@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifdef DEBUG
 char timebuf[BUFLEN];
 #endif
 
 	select = NULL;
-	selectprev = NULL;
-	if(head){
-		/* 遍历等待队列中的作业，找到优先级最高的作业 */
-		for(prev = head, p = head; p != NULL; prev = p,p = p->next)
-			if(p->job->curpri > highest){
-				select = p;
-				selectprev = prev;
-				highest = p->job->curpri;
-			}
-			selectprev->next = select->next;
-			if (select == selectprev)
-				head = NULL;
+	
+	// 先从最高优先级开始找，依次查询
+	// 每一次都是取出头节点，放回时放回尾部。
+	if(head3){
+	select=head3;
+	head3=head3->next;
+	select->next=NULL;
+	}
+	else if(head2){
+	select=head2;
+	head2=head2->next;
+	select->next=NULL;
+	}
+	else if(head1){
+	select=head1;
+	head1=head1->next;
+	select->next=NULL;
+	}
+	else{
+	select=NULL;
 	}
 
 /* 调试任务8@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
@@ -191,23 +256,31 @@ else
 	printf("the select job:\n");
 	strcpy(timebuf,ctime(&(select->job->create_time)));
 	timebuf[strlen(timebuf)-1]='\0';
-	printf("jobid:%d\npid:%d\nowner:%d\nruntime:%d\nwaittime:%d\ncreattime:%s\nstate:%s\n",
+	printf("jobid:%d\npid:%d\nowner:%d\nruntime:%d\nwaittime:%d\nconstanttime:%d\ndefpri:%d\ncurpri:%d\ncreattime:%s\nstate:%s\n",
 		select->job->jid,
 		select->job->pid,
 		select->job->ownerid,
 		select->job->run_time,
 		select->job->wait_time,
+		select->job->constant_time,
+		select->job->defpri,
+		select->job->curpri,
 		timebuf,"Ready");	
 }
 #endif
 	return select;
 }
 
+
 void jobswitch()
 {
 	struct waitqueue *p;
 	int i;
-
+// 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+if (next != NULL && current == NULL)
+{
+printf("begin start new job\n");
+}
 	if(current && current->job->state == DONE){ /* 当前作业完成 */
 		/* 作业完成，删除它 */
 		for(i = 0;(current->job->cmdarg)[i] != NULL; i++){
@@ -226,36 +299,50 @@ void jobswitch()
 
 		return;
 	else if (next != NULL && current == NULL){ /* 开始新的作业 */
-
-		printf("begin start new job\n");
 		current = next;
 		next = NULL;
 		current->job->state = RUNNING;
 		kill(current->job->pid,SIGCONT);
+#ifdef DEBUG
+printf("send SIGCONT to current\n"); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#endif
 		return;
 	}
 	else if (next != NULL && current != NULL){ /* 切换作业 */
+// 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+// 切换的条件：next的优先级高于current，同优先级且current的时间片到
+if(next->job->curpri > current->job->curpri || (next->job->curpri == current->job->curpri && checkRunTime(current) ))
+{
 
 		printf("switch to Pid: %d\n",next->job->pid);
 		kill(current->job->pid,SIGSTOP);
-		current->job->curpri = current->job->defpri;
+		current->job->curpri = current->job->defpri ; /// 
 		current->job->wait_time = 0;
+		current->job->constant_time = 0; // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		current->job->state = READY;
 
-		/* 放回等待队列 */
-		if(head){
-			for(p = head; p->next != NULL; p = p->next);
-			p->next = current;
-		}else{
-			head = current;
-		}
+		/* current需要放回等待队列尾部 */
+		queueEnd(current); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
 		current = next;
 		next = NULL;
 		current->job->state = RUNNING;
 		current->job->wait_time = 0;
+		current->job->constant_time = 0;
 		kill(current->job->pid,SIGCONT);
 		return;
+}
+else // 不切换，继续运行current    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+{
+// 需要把next重新放回相应队列的头部！！！
+queueHead(next);
+next=NULL;
+// kill(current->job->pid,SIGCONT);  
+return ;
+}
+
 	}else{ /* next == NULL且current != NULL，不切换 */
+//		kill(current->job->pid,SIGCONT);   // 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		return;
 	}
 }
@@ -315,12 +402,13 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newjob = (struct jobinfo *)malloc(sizeof(struct jobinfo));
 	newjob->jid = allocjid();
 	newjob->defpri = enqcmd.defpri;
-	newjob->curpri = enqcmd.defpri;
+	newjob->curpri = enqcmd.defpri; // ///////
 	newjob->ownerid = enqcmd.owner;
 	newjob->state = READY;
 	newjob->create_time = time(NULL);
 	newjob->wait_time = 0;
 	newjob->run_time = 0;
+	newjob->constant_time = 0; // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	arglist = (char**)malloc(sizeof(char*)*(enqcmd.argnum+1));
 	newjob->cmdarg = arglist;
 	offset = enqcmd.data;
@@ -351,13 +439,15 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newnode->next =NULL;
 	newnode->job=newjob;
 
-	if(head)
+// 修改点@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+queueEnd(newnode);
+/*	if(head)
 	{
 		for(p=head;p->next != NULL; p=p->next);
 		p->next =newnode;
 	}else
 		head=newnode;
-
+*/
 	/*为作业创建进程*/
 	if((pid=fork())<0)
 		error_sys("enq fork failed");
@@ -381,20 +471,21 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 		exit(1);
 	}else{
 		newjob->pid=pid;
+		wait(NULL); // 让父进程等待子进程结束@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	}
 }
 
 void do_deq(struct jobcmd deqcmd)
 {
 	int deqid,i;
-	struct waitqueue *p,*prev,*select,*selectprev;
+	struct waitqueue *p,*prev,*select,*selectprev,*rhead;
 	deqid=atoi(deqcmd.data);
 
 #ifdef DEBUG
 	printf("deq jid %d\n",deqid);
 #endif
 
-	/*current jodid==deqid,终止当前作业*/
+	/* current jodid==deqid,终止当前作业 */
 	if (current && current->job->jid ==deqid){
 		printf("teminate current job\n");
 		kill(current->job->pid,SIGKILL);
@@ -407,21 +498,25 @@ void do_deq(struct jobcmd deqcmd)
 		free(current);
 		current=NULL;
 	}
+
 	else{ /* 或者在等待队列中查找deqid */
 		select=NULL;
 		selectprev=NULL;
-		if(head){
-			for(prev=head,p=head;p!=NULL;prev=p,p=p->next)
+// 修改点 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		if(head1){
+			for(prev=head1,p=head1;p!=NULL;prev=p,p=p->next){
 				if(p->job->jid==deqid){
 					select=p;
 					selectprev=prev;
 					break;
 				}
-				selectprev->next=select->next;
-				if(select==selectprev)
-					head=NULL;
+			}	
 		}
+		// 如果找到select的话 
 		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head1=head1->next;
 			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
 				free((select->job->cmdarg)[i]);
 				(select->job->cmdarg)[i]=NULL;
@@ -430,6 +525,55 @@ void do_deq(struct jobcmd deqcmd)
 			free(select->job);
 			free(select);
 			select=NULL;
+			return ;
+		}
+		if(head2){
+			for(prev=head2,p=head2;p!=NULL;prev=p,p=p->next){
+				if(p->job->jid==deqid){
+					select=p;
+					selectprev=prev;
+					break;
+				}
+			}	
+		}
+		// 如果找到select的话 
+		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head2=head2->next;
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+				free((select->job->cmdarg)[i]);
+				(select->job->cmdarg)[i]=NULL;
+			}
+			free(select->job->cmdarg);
+			free(select->job);
+			free(select);
+			select=NULL;
+			return ;
+		}
+		if(head3){
+			for(prev=head3,p=head3;p!=NULL;prev=p,p=p->next){
+				if(p->job->jid==deqid){
+					select=p;
+					selectprev=prev;
+					break;
+				}
+			}	
+		}
+		// 如果找到select的话 
+		if(select){
+			selectprev->next=select->next;
+			if(select==selectprev)
+				head3=head3->next;
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+				free((select->job->cmdarg)[i]);
+				(select->job->cmdarg)[i]=NULL;
+			}
+			free(select->job->cmdarg);
+			free(select->job);
+			free(select);
+			select=NULL;
+			return ;
 		}
 	}
 }
@@ -452,22 +596,26 @@ char str[10];
 	*6.作业创建时间
 	*7.作业状态
 	*/
-
+printf("current:\n"); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	/* 打印信息头部 */
-	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\t\tSTATE\n");
+	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITIME\tCONTIME\tDEFPRI\tCURPRI\tCRETIME\t\tSTATE\n");
 	if(current){
-jobstate(current->job,str);
+jobstate(current->job,str); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf)-1]='\0';
-		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+		printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
 			current->job->jid,
 			current->job->pid,
 			current->job->ownerid,
 			current->job->run_time,
 			current->job->wait_time,
+			current->job->constant_time,
+			current->job->defpri,
+			current->job->curpri,
 			timebuf,str);
 	}
 
+/*
 	for(p=head;p!=NULL;p=p->next){
 jobstate(p->job,str);
 		strcpy(timebuf,ctime(&(p->job->create_time)));
@@ -478,6 +626,62 @@ jobstate(p->job,str);
 			p->job->ownerid,
 			p->job->run_time,
 			p->job->wait_time,
+			timebuf,
+			str);
+	}
+*/
+
+// 修改点@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+printf("waitting queue:\n");
+printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITIME\tCONTIME\tDEFPRI\tCURPRI\tCRETIME\t\tSTATE\n");
+/*优先级为三的队列的ready状态的进程输出*/
+	for(p=head3;p!=NULL;p=p->next){
+		jobstate(p->job,str); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			p->job->constant_time,
+			p->job->defpri,
+			p->job->curpri,
+			timebuf,
+			str);
+	}
+/*优先级为二的队列的ready状态的进程输出*/
+	for(p=head2;p!=NULL;p=p->next){
+		jobstate(p->job,str); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			p->job->constant_time,
+			p->job->defpri,
+			p->job->curpri,
+			timebuf,
+			str);
+	}
+/*优先级为一的队列的ready状态的进程输出*/
+	for(p=head1;p!=NULL;p=p->next){
+		jobstate(p->job,str); // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			p->job->constant_time,
+			p->job->defpri,
+			p->job->curpri,
 			timebuf,
 			str);
 	}
@@ -553,5 +757,76 @@ void jobstate(struct jobinfo *job,char *str)
 	{
 		str[0]='\0';
 	}
+}
+
+// // 修改点@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// 把一个节点添加到相应的队列尾部
+void queueEnd(struct waitqueue *newnode)
+{
+	struct waitqueue *p;
+#ifdef DEBUG
+if(newnode->next!=NULL)
+printf("queueEnd error!!!!!!!!!!!!!!!\n");
+#endif
+
+	switch (newnode->job->curpri){
+	case 1:
+		if (head1){
+		for (p = head1; p->next != NULL; p = p->next);
+		p->next = newnode;
+		}
+		else
+			head1 = newnode;
+		return;
+	case 2:
+		if (head2){
+		for (p = head2; p->next != NULL; p = p->next);
+		p->next = newnode;
+		}
+		else
+			head2 = newnode;
+		return;
+	case 3:
+		if (head3){
+		for (p = head3; p->next != NULL; p = p->next);
+		p->next = newnode;
+		}
+		else
+			head3 = newnode;
+		return;
+	}
+}
+
+// 把一个节点添加到相应的队列头部
+void queueHead(struct waitqueue *newnode)
+{
+	struct waitqueue *p;
+
+	switch (newnode->job->curpri){
+	case 1:
+		newnode->next=head1;
+		head1=newnode;
+		return;
+	case 2:
+		newnode->next=head2;
+		head2=newnode;
+		return;
+	case 3:
+		newnode->next=head3;
+		head3=newnode;
+		return;
+	}
+}
+
+//  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+int checkRunTime(struct waitqueue* p)
+{
+if(p->job->curpri == 1 && p->job->constant_time >= 5)
+	return 1;
+if(p->job->curpri == 2 && p->job->constant_time >= 2)
+	return 1;
+if(p->job->curpri == 3 && p->job->constant_time >= 1)
+	return 1;
+return 0;
 }
 

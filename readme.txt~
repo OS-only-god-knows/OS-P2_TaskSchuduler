@@ -82,7 +82,7 @@
 	do_stat(cmd);
 	#endif
 7.调试任务10:实现“显示当进程自己运行完成后发送SIGCHLD给sig_handler后的正在执行的进程和等待队列中的状态”。
-	修改Demo.c，使其循环20次后结束。
+	修改Demo.c，使其循环10次后结束。
 	在sig_handler()函数中增加代码如下：
 	#ifdef DEBUG
 	struct jobcmd cmd;
@@ -95,6 +95,28 @@
 	待完善~
 8.添加jobstate函数：用来生成job的状态
   修改do_stat函数。
+
+
+2015/5/6
+1.汇总组员的工作
+2.调试
+
+2015/5/7
+1.调试！！！
+2.修改do_stat
+3.修正源码的一个bug：输入单个enq命令，该作业并不会运行。
+措施：在创建子进程后，让父进程等待。（在do_enq函数中添加了wait(NULL)）
+4.继续调试找错：
+（1)jobswitch函数中，当next！=NULL && current！=NULL时，若不需要切换，next没有放回队列。
+措施：放回队列
+@@@@@@低优先级队列运行正常！
+
+2015/5/9
+最后的测试。
+1.解决抢占问题
+2.解决运行一段时间后崩溃问题
+3.修改updateall的Bug
+4.修改do_deq的bug
 
 
 
